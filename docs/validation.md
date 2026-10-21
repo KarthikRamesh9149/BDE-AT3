@@ -30,18 +30,38 @@ python -m pytest tests/test_part1.py -q
 
 ## Cloud preparation checked, 21 October 2026
 
-The whole `part_1.sql` script was executed through DBeaver against Cloud SQL database `BDEAT3`. Its results showed `ssl_active = true`, all five Bronze row counts equal to zero, and zero dbt completion records. The original `bigdataat3` database remains a separate database.
+The setup SQL, now labelled Section A in `part_1.sql`, was executed through DBeaver against Cloud SQL database `BDEAT3`. Its results showed `ssl_active = true`, all five Bronze row counts equal to zero, and zero dbt completion records. The original `bigdataat3` database remains a separate database.
 
-The saved Airflow connection `postgres_bdeat3` targets `BDEAT3` at the Cloud SQL private endpoint, with `sslmode=require` and a 10-second connection timeout. Airflow reports encrypted password and Extra fields. Composer connectivity will be established by the first actual task run.
+The saved Airflow connection `postgres_bdeat3` targets `BDEAT3` at the Cloud SQL private endpoint, with `sslmode=require` and a 10-second connection timeout. Airflow reports encrypted password and Extra fields. Connectivity was subsequently established by the successful May tasks below.
 
-Cloud Storage lists only May 2020 in the new listings prefix, plus the two Census and two LGA reference files in their own subfolders. The five prepared upload files match the committed source manifest. Cloud byte hashes will be checked by `validate_sources` before any raw-table writes.
+Cloud Storage listed only May 2020 in the new listings prefix, plus the two Census and two LGA reference files in their own subfolders. The five prepared upload files match the committed source manifest. The May `validate_sources` task subsequently confirmed all five cloud byte hashes before writing raw tables.
 
-The new DAG was uploaded to the Composer bucket and parsed by Airflow 2.11.1+composer at 23:37:59 AEDT. Its Details view reports no import errors, paused state true, catchup false, one maximum active run and external triggers only. The graph has exactly `validate_sources -> load_bronze -> verify_bronze`. The run grid is empty.
+The new DAG was uploaded to the Composer bucket and parsed by Airflow 2.11.1+composer at 23:37:59 AEDT. Before execution, its Details view reported no import errors, paused state true, catchup false, one maximum active run and external triggers only. The graph has exactly `validate_sources -> load_bronze -> verify_bronze`. Its run grid was empty at that preparation checkpoint.
 
 The complete code text displayed by Airflow matches the tested local DAG exactly (39,671 bytes; SHA-256 `7da23c541fa68d432ebd7c2a1cdee69a951336791722dc71dcecdbad8b5527fe`).
 
-## Monthly execution still required
+## May cloud execution, 21 October 2026
 
-The May DAG has not been triggered. After triggering it in the next checkpoint, retain the actual task results and independent DBeaver counts. The local rehearsal does not replace those checks. The new dbt project contents, deployment configuration and saved job have not yet been implemented or run.
+Run `manual__2026-10-21T23:56:47+11:00` was manually triggered with `mode=next`. The run began at 23:57:41 AEDT and finished successfully at 23:58:04 AEDT. All three tasks succeeded on the first attempt. The logical date in the run ID precedes the actual start time.
 
-The cloud environment uses Airflow 2.11.1 with its Composer provider set. A local import confirms compatibility with the tested environment only; the deployed DAG must also parse in Composer.
+`validate_sources` downloaded the five actual GCS objects and matched their SHA-256 hashes and row counts to `source_manifest.json`. Their object generations were recorded in the run manifest. `load_bronze` and `verify_bronze` both reported that exact source comparisons passed. Verification's `raw retry=True` log field means it compared already committed rows without replacing them; it does not indicate a second Airflow run or a failed task attempt.
+
+Independent DBeaver queries on 22 October checked the committed source values against fingerprints calculated directly from the prepared CSVs, including duplicate multiplicities. Every count and content comparison passed:
+
+| Table | Rows | Count and source values |
+|---|---:|---|
+| `bronze.raw_airbnb` | 37,562 | Match |
+| `bronze.raw_census_g01` | 132 | Match |
+| `bronze.raw_census_g02` | 132 | Match |
+| `bronze.raw_lga_code` | 129 | Match |
+| `bronze.raw_lga_suburb` | 4,470 | Match |
+
+Nine further checks returned true: database `BDEAT3`, active SSL, only May listings, one verified month, one verified run, five source records with object generations, an empty dbt completion ledger, no Silver/Gold schemas yet, and DATE-typed source-month metadata. The exact content and state queries are retained in Section B of `part_1.sql` for the Part 1 checkpoint.
+
+The original database was checked before and after the load. Counts and whole-row fingerprints remained identical for its five Bronze tables, Host and Property snapshots, and listing-month fact table. This verifies the eight checked relations; it is not a claim that every object or shared server resource was independently audited.
+
+The deployed DAG and setup statements were unchanged during this checkpoint. The existing 15 local test results still apply to them. The added read-only verification queries were executed successfully against Cloud SQL through DBeaver.
+
+## Next checkpoint
+
+Part 1 is complete. Part 2 must implement and test the new dbt project, link the GitHub repository, verify development and deployment destinations, and successfully run the saved May job. No dbt completion record has been inserted. June must not be loaded before that job succeeds. Part 3 and Part 4 remain pending.

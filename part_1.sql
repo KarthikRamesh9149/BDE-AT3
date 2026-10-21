@@ -1,4 +1,6 @@
--- Part 1: execute this whole script in DBeaver, connected to BDEAT3.
+-- Part 1: use DBeaver, connected to BDEAT3.
+-- Section A: run once before the first Airflow load.
+-- Section B at the end: run separately after May succeeds.
 -- One-time setup only. Refuse an existing workload rather than erasing its history.
 -- Raw source columns remain TEXT; cleaning belongs in Silver.
 -- _source_month is the filename month, while _loaded_at records the load time.
@@ -287,3 +289,140 @@ UNION ALL SELECT 'raw_census_g02', COUNT(*) FROM bronze.raw_census_g02
 UNION ALL SELECT 'raw_lga_code', COUNT(*) FROM bronze.raw_lga_code
 UNION ALL SELECT 'raw_lga_suburb', COUNT(*) FROM bronze.raw_lga_suburb;
 SELECT COUNT(*) AS dbt_completion_rows FROM pipeline.dbt_completions;
+
+
+-- Section B: post-May verification (read only).
+-- Select and run this section after May succeeds; do not rerun Section A.
+-- Counts and source-value fingerprints are calculated independently from the CSVs.
+-- Each row hash serialises the original source fields in CSV column order.
+-- Sorting the row hashes retains duplicate multiplicities without depending on row order.
+-- Run after the May Airflow load, connected to BDEAT3.
+-- Fingerprints cover every source value and retain duplicate multiplicity.
+WITH actual AS (
+SELECT 'raw_airbnb' AS table_name, count(*) AS actual_rows, md5(string_agg(md5(array_to_json(ARRAY[listing_id,
+    scrape_id, scraped_date, host_id, host_name, host_since, host_is_superhost, host_neighbourhood,
+    listing_neighbourhood, property_type, room_type, accommodates, price, has_availability, availability_30,
+    number_of_reviews, review_scores_rating, review_scores_accuracy, review_scores_cleanliness,
+    review_scores_checkin, review_scores_communication, review_scores_value])::text), '' ORDER BY
+    md5(array_to_json(ARRAY[listing_id, scrape_id, scraped_date, host_id, host_name, host_since,
+    host_is_superhost, host_neighbourhood, listing_neighbourhood, property_type, room_type, accommodates,
+    price, has_availability, availability_30, number_of_reviews, review_scores_rating, review_scores_accuracy,
+    review_scores_cleanliness, review_scores_checkin, review_scores_communication,
+    review_scores_value])::text) COLLATE "C")) AS content_fingerprint FROM bronze.raw_airbnb
+UNION ALL
+SELECT 'raw_census_g01' AS table_name, count(*) AS actual_rows,
+    md5(string_agg(md5(array_to_json(ARRAY[lga_code_2016, tot_p_m, tot_p_f, tot_p_p, age_0_4_yr_m,
+    age_0_4_yr_f, age_0_4_yr_p, age_5_14_yr_m, age_5_14_yr_f, age_5_14_yr_p, age_15_19_yr_m, age_15_19_yr_f,
+    age_15_19_yr_p, age_20_24_yr_m, age_20_24_yr_f, age_20_24_yr_p, age_25_34_yr_m, age_25_34_yr_f,
+    age_25_34_yr_p, age_35_44_yr_m, age_35_44_yr_f, age_35_44_yr_p, age_45_54_yr_m, age_45_54_yr_f,
+    age_45_54_yr_p, age_55_64_yr_m, age_55_64_yr_f, age_55_64_yr_p, age_65_74_yr_m, age_65_74_yr_f,
+    age_65_74_yr_p, age_75_84_yr_m, age_75_84_yr_f, age_75_84_yr_p, age_85ov_m, age_85ov_f, age_85ov_p,
+    counted_census_night_home_m, counted_census_night_home_f, counted_census_night_home_p,
+    count_census_nt_ewhere_aust_m, count_census_nt_ewhere_aust_f, count_census_nt_ewhere_aust_p,
+    indigenous_psns_aboriginal_m, indigenous_psns_aboriginal_f, indigenous_psns_aboriginal_p,
+    indig_psns_torres_strait_is_m, indig_psns_torres_strait_is_f, indig_psns_torres_strait_is_p,
+    indig_bth_abor_torres_st_is_m, indig_bth_abor_torres_st_is_f, indig_bth_abor_torres_st_is_p,
+    indigenous_p_tot_m, indigenous_p_tot_f, indigenous_p_tot_p, birthplace_australia_m,
+    birthplace_australia_f, birthplace_australia_p, birthplace_elsewhere_m, birthplace_elsewhere_f,
+    birthplace_elsewhere_p, lang_spoken_home_eng_only_m, lang_spoken_home_eng_only_f,
+    lang_spoken_home_eng_only_p, lang_spoken_home_oth_lang_m, lang_spoken_home_oth_lang_f,
+    lang_spoken_home_oth_lang_p, australian_citizen_m, australian_citizen_f, australian_citizen_p,
+    age_psns_att_educ_inst_0_4_m, age_psns_att_educ_inst_0_4_f, age_psns_att_educ_inst_0_4_p,
+    age_psns_att_educ_inst_5_14_m, age_psns_att_educ_inst_5_14_f, age_psns_att_educ_inst_5_14_p,
+    age_psns_att_edu_inst_15_19_m, age_psns_att_edu_inst_15_19_f, age_psns_att_edu_inst_15_19_p,
+    age_psns_att_edu_inst_20_24_m, age_psns_att_edu_inst_20_24_f, age_psns_att_edu_inst_20_24_p,
+    age_psns_att_edu_inst_25_ov_m, age_psns_att_edu_inst_25_ov_f, age_psns_att_edu_inst_25_ov_p,
+    high_yr_schl_comp_yr_12_eq_m, high_yr_schl_comp_yr_12_eq_f, high_yr_schl_comp_yr_12_eq_p,
+    high_yr_schl_comp_yr_11_eq_m, high_yr_schl_comp_yr_11_eq_f, high_yr_schl_comp_yr_11_eq_p,
+    high_yr_schl_comp_yr_10_eq_m, high_yr_schl_comp_yr_10_eq_f, high_yr_schl_comp_yr_10_eq_p,
+    high_yr_schl_comp_yr_9_eq_m, high_yr_schl_comp_yr_9_eq_f, high_yr_schl_comp_yr_9_eq_p,
+    high_yr_schl_comp_yr_8_belw_m, high_yr_schl_comp_yr_8_belw_f, high_yr_schl_comp_yr_8_belw_p,
+    high_yr_schl_comp_d_n_g_sch_m, high_yr_schl_comp_d_n_g_sch_f, high_yr_schl_comp_d_n_g_sch_p,
+    count_psns_occ_priv_dwgs_m, count_psns_occ_priv_dwgs_f, count_psns_occ_priv_dwgs_p,
+    count_persons_other_dwgs_m, count_persons_other_dwgs_f, count_persons_other_dwgs_p])::text), '' ORDER BY
+    md5(array_to_json(ARRAY[lga_code_2016, tot_p_m, tot_p_f, tot_p_p, age_0_4_yr_m, age_0_4_yr_f,
+    age_0_4_yr_p, age_5_14_yr_m, age_5_14_yr_f, age_5_14_yr_p, age_15_19_yr_m, age_15_19_yr_f, age_15_19_yr_p,
+    age_20_24_yr_m, age_20_24_yr_f, age_20_24_yr_p, age_25_34_yr_m, age_25_34_yr_f, age_25_34_yr_p,
+    age_35_44_yr_m, age_35_44_yr_f, age_35_44_yr_p, age_45_54_yr_m, age_45_54_yr_f, age_45_54_yr_p,
+    age_55_64_yr_m, age_55_64_yr_f, age_55_64_yr_p, age_65_74_yr_m, age_65_74_yr_f, age_65_74_yr_p,
+    age_75_84_yr_m, age_75_84_yr_f, age_75_84_yr_p, age_85ov_m, age_85ov_f, age_85ov_p,
+    counted_census_night_home_m, counted_census_night_home_f, counted_census_night_home_p,
+    count_census_nt_ewhere_aust_m, count_census_nt_ewhere_aust_f, count_census_nt_ewhere_aust_p,
+    indigenous_psns_aboriginal_m, indigenous_psns_aboriginal_f, indigenous_psns_aboriginal_p,
+    indig_psns_torres_strait_is_m, indig_psns_torres_strait_is_f, indig_psns_torres_strait_is_p,
+    indig_bth_abor_torres_st_is_m, indig_bth_abor_torres_st_is_f, indig_bth_abor_torres_st_is_p,
+    indigenous_p_tot_m, indigenous_p_tot_f, indigenous_p_tot_p, birthplace_australia_m,
+    birthplace_australia_f, birthplace_australia_p, birthplace_elsewhere_m, birthplace_elsewhere_f,
+    birthplace_elsewhere_p, lang_spoken_home_eng_only_m, lang_spoken_home_eng_only_f,
+    lang_spoken_home_eng_only_p, lang_spoken_home_oth_lang_m, lang_spoken_home_oth_lang_f,
+    lang_spoken_home_oth_lang_p, australian_citizen_m, australian_citizen_f, australian_citizen_p,
+    age_psns_att_educ_inst_0_4_m, age_psns_att_educ_inst_0_4_f, age_psns_att_educ_inst_0_4_p,
+    age_psns_att_educ_inst_5_14_m, age_psns_att_educ_inst_5_14_f, age_psns_att_educ_inst_5_14_p,
+    age_psns_att_edu_inst_15_19_m, age_psns_att_edu_inst_15_19_f, age_psns_att_edu_inst_15_19_p,
+    age_psns_att_edu_inst_20_24_m, age_psns_att_edu_inst_20_24_f, age_psns_att_edu_inst_20_24_p,
+    age_psns_att_edu_inst_25_ov_m, age_psns_att_edu_inst_25_ov_f, age_psns_att_edu_inst_25_ov_p,
+    high_yr_schl_comp_yr_12_eq_m, high_yr_schl_comp_yr_12_eq_f, high_yr_schl_comp_yr_12_eq_p,
+    high_yr_schl_comp_yr_11_eq_m, high_yr_schl_comp_yr_11_eq_f, high_yr_schl_comp_yr_11_eq_p,
+    high_yr_schl_comp_yr_10_eq_m, high_yr_schl_comp_yr_10_eq_f, high_yr_schl_comp_yr_10_eq_p,
+    high_yr_schl_comp_yr_9_eq_m, high_yr_schl_comp_yr_9_eq_f, high_yr_schl_comp_yr_9_eq_p,
+    high_yr_schl_comp_yr_8_belw_m, high_yr_schl_comp_yr_8_belw_f, high_yr_schl_comp_yr_8_belw_p,
+    high_yr_schl_comp_d_n_g_sch_m, high_yr_schl_comp_d_n_g_sch_f, high_yr_schl_comp_d_n_g_sch_p,
+    count_psns_occ_priv_dwgs_m, count_psns_occ_priv_dwgs_f, count_psns_occ_priv_dwgs_p,
+    count_persons_other_dwgs_m, count_persons_other_dwgs_f, count_persons_other_dwgs_p])::text) COLLATE "C"))
+    AS content_fingerprint FROM bronze.raw_census_g01
+UNION ALL
+SELECT 'raw_census_g02' AS table_name, count(*) AS actual_rows,
+    md5(string_agg(md5(array_to_json(ARRAY[lga_code_2016, median_age_persons, median_mortgage_repay_monthly,
+    median_tot_prsnl_inc_weekly, median_rent_weekly, median_tot_fam_inc_weekly, average_num_psns_per_bedroom,
+    median_tot_hhd_inc_weekly, average_household_size])::text), '' ORDER BY
+    md5(array_to_json(ARRAY[lga_code_2016, median_age_persons, median_mortgage_repay_monthly,
+    median_tot_prsnl_inc_weekly, median_rent_weekly, median_tot_fam_inc_weekly, average_num_psns_per_bedroom,
+    median_tot_hhd_inc_weekly, average_household_size])::text) COLLATE "C")) AS content_fingerprint FROM
+    bronze.raw_census_g02
+UNION ALL
+SELECT 'raw_lga_code' AS table_name, count(*) AS actual_rows, md5(string_agg(md5(array_to_json(ARRAY[lga_code,
+    lga_name])::text), '' ORDER BY md5(array_to_json(ARRAY[lga_code, lga_name])::text) COLLATE "C")) AS
+    content_fingerprint FROM bronze.raw_lga_code
+UNION ALL
+SELECT 'raw_lga_suburb' AS table_name, count(*) AS actual_rows,
+    md5(string_agg(md5(array_to_json(ARRAY[lga_name, suburb_name, source_column_03, source_column_04,
+    source_column_05, source_column_06, source_column_07, source_column_08, source_column_09,
+    source_column_10, source_column_11, source_column_12, source_column_13, source_column_14,
+    source_column_15, source_column_16, source_column_17, source_column_18, source_column_19,
+    source_column_20, source_column_21, source_column_22, source_column_23, source_column_24,
+    source_column_25, source_column_26, source_column_27])::text), '' ORDER BY
+    md5(array_to_json(ARRAY[lga_name, suburb_name, source_column_03, source_column_04, source_column_05,
+    source_column_06, source_column_07, source_column_08, source_column_09, source_column_10,
+    source_column_11, source_column_12, source_column_13, source_column_14, source_column_15,
+    source_column_16, source_column_17, source_column_18, source_column_19, source_column_20,
+    source_column_21, source_column_22, source_column_23, source_column_24, source_column_25,
+    source_column_26, source_column_27])::text) COLLATE "C")) AS content_fingerprint FROM
+    bronze.raw_lga_suburb
+), expected(table_name, expected_rows, content_fingerprint) AS (VALUES
+('raw_airbnb', 37562, '38dfedc91b209f4931af9f6a240f4ca8'),
+('raw_census_g01', 132, '0e00bf4a4f9781fcf89f1b315b6a296e'),
+('raw_census_g02', 132, 'd61e9ac58640c94c0f05c65d25c655b1'),
+('raw_lga_code', 129, '0a3e565ddd7a152387b41f2881882ea5'),
+('raw_lga_suburb', 4470, '0d1e2ca92689ae45a8a1d1ec2544bb8f'))
+SELECT actual.table_name, actual.actual_rows, actual.actual_rows=expected.expected_rows AS count_matches,
+       actual.content_fingerprint=expected.content_fingerprint AS source_values_match
+FROM actual JOIN expected USING (table_name)
+ORDER BY table_name;
+
+-- May-only checkpoint: expect nine true results before starting Part 2.
+SELECT 'correct_database' AS check_name, current_database()='BDEAT3' AS passed
+UNION ALL SELECT 'ssl_active', (SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid())
+UNION ALL SELECT 'only_may_rows', count(*)=37562 AND count(*) FILTER (WHERE _source_month=DATE '2020-05-01'
+    AND _source_file='05_2020.csv')=37562 FROM bronze.raw_airbnb
+UNION ALL SELECT 'one_verified_month', count(*)=1 AND count(*) FILTER (WHERE observation_month=DATE
+    '2020-05-01' AND verified_at IS NOT NULL)=1 FROM pipeline.monthly_loads
+UNION ALL SELECT 'one_verified_run', count(*)=1 AND count(*) FILTER (WHERE observation_month=DATE '2020-05-01'
+    AND source_manifest IS NOT NULL AND verified_at IS NOT NULL)=1 FROM pipeline.load_runs
+UNION ALL SELECT 'five_source_records', count(*)=5 AND bool_and(generation>0 AND loaded_at IS NOT NULL) FROM
+    pipeline.source_files
+UNION ALL SELECT 'dbt_still_pending', count(*)=0 FROM pipeline.dbt_completions
+UNION ALL SELECT 'no_old_silver_or_gold', count(*)=0 FROM pg_namespace WHERE nspname IN ('silver','gold')
+UNION ALL SELECT 'source_month_metadata', bool_and((table_schema='bronze' AND column_name='_source_month' AND
+    data_type='date')) FROM information_schema.columns WHERE table_schema='bronze' AND table_name='raw_airbnb'
+    AND column_name='_source_month'
+ORDER BY check_name;

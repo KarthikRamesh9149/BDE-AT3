@@ -17,11 +17,11 @@ Use the existing PostgreSQL account password directly in DBeaver and Airflow. Cr
 ## Prepare the database in DBeaver
 
 1. Connect to database `BDEAT3` using the standard PostgreSQL driver. Verify the database name and SSL before proceeding.
-2. Open `part_1.sql` and execute the whole script. It creates five raw tables in `bronze` and separate operational tables in `pipeline`.
+2. Open `part_1.sql` and execute Section A only. It creates five raw tables in `bronze` and separate operational tables in `pipeline`. Section B is for the checks after the May load.
 3. Confirm all five final raw-table row counts are zero and `pipeline.dbt_completions` is empty.
 4. Keep the SQL script for submission. It is a one-time setup, not a monthly reset. If it reports existing schemas, stop and inspect the selected database rather than dropping or truncating existing work.
 
-The source has 22 Airbnb, 109 G01, 9 G02, 2 LGA code and 27 suburb-mapping fields. All 180 positions are preserved. The additional `_source_file`, `_loaded_at` and Airbnb `_source_month` columns record provenance. Unnamed mapping columns have positional names and are retained.
+The source has 22 Airbnb, 109 G01, 9 G02, 2 LGA code and 27 suburb-mapping fields. All 169 source positions are preserved. The additional `_source_file` and `_loaded_at` columns on each table, plus Airbnb `_source_month`, add 11 metadata columns for 180 columns in total. Unnamed mapping columns have positional names and are retained.
 
 ## Upload Part 1 inputs
 
@@ -49,7 +49,7 @@ Upload the combined DAG file to the Composer bucket's `dags/` folder. Confirm th
 
 ## May load and subsequent monthly cycle
 
-When ready to execute Part 1, unpause and manually trigger the DAG with its default `mode=next`. Wait for all three tasks to succeed. Check source row counts, the selected month, the verified load record and that no second month has been inserted.
+When ready to execute Part 1, unpause and manually trigger the DAG with its default `mode=next`. Wait for all three tasks to succeed. In DBeaver, run only Section B of `part_1.sql` to check source counts and contents, the selected month, the verified load record and that no second month has been inserted. These May-specific checks describe the Part 1 checkpoint; they are not expected to pass unchanged after later months are loaded.
 
 After Part 2 is ready, manually run the saved dbt deployment job for May and wait for Success before proceeding. Part 3 repeats the same sequence for June 2020 through April 2021. The DAG does not trigger dbt itself.
 
