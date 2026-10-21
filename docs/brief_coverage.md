@@ -2,6 +2,8 @@
 
 This map uses the visible assignment-brief photographs and the supplied teaching-team clarification screenshots. A source file or local test is not evidence of a successful hosted run. Actual cloud status is recorded in `validation.md`.
 
+Current checkpoint: Parts 1 and 2 are complete through May 2020. The GitHub repository is linked, the isolated Studio build and saved production job passed, and the cloud results were independently checked. Part 3 is prepared but unexecuted; Part 4 and final submission remain deferred.
+
 | Brief requirement | Project implementation / evidence |
 |---|---|
 | Part 0: twelve Sydney Airbnb months, Census G01/G02 and LGA mappings | `source_manifest.json` records all sixteen supplied CSVs and their expected counts/hashes. |

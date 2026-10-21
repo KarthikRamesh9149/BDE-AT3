@@ -2,7 +2,7 @@
 
 Airbnb and Census ELT pipeline for Big Data Engineering Assignment 3.
 
-Part 1 is complete in PostgreSQL database `BDEAT3`. The May 2020 cloud load succeeded on 21 October 2026; independent DBeaver checks confirmed all five source counts and contents. The dbt warehouse and validation controls are implemented and locally tested. Hosted May execution remains pending GitHub connection authorisation and final deployment configuration. Part 3 cloud loads and Part 4 analysis have not started.
+Parts 1 and 2 are complete in PostgreSQL database `BDEAT3`. The May 2020 Airflow load succeeded on 21 October 2026; independent DBeaver checks confirmed all five source counts and contents. On 22 October, the isolated development build and saved production job both passed all 47 data tests. Cloud SQL contains 37,562 May facts with correct historical dimension matches; all 9,002 independently calculated May datamart values matched. Part 3 is prepared but its cloud loads have not started. Part 4 is deferred.
 
 ## Files
 
@@ -28,7 +28,7 @@ The saved manual deployment job is `BDEAT3 monthly build` in `BDEAT3 Production`
 dbt build --threads 1 --fail-fast --vars '{"observation_month":"2020-05-01"}'
 ```
 
-The cloud completion ledger remains empty until the hosted job passes. Each later Airflow month requires the preceding month's verified Bronze load and recorded successful dbt deployment job. After each monthly load, change the job's month variable, manually run the job and wait for Success before the next load.
+The May production run [`70506184016163`](https://lk965.us1.dbt.com/deploy/70506183170770/projects/70506183174422/runs/70506184016163) passed on reviewed implementation commit `859be2d9178bf3bac904942fb9814ef45cf9aeb9`. The cloud completion ledger records its real job/run IDs and matching source manifest. Each later Airflow month requires the preceding month's verified Bronze load and recorded successful dbt deployment job. After each monthly load, change the job's month variable, manually run the job and wait for Success before the next load.
 
 ## Design
 

@@ -97,10 +97,31 @@ This rehearsal does not insert data or completion records in Cloud SQL. The depl
 
 The `BDEAT3` connection targets the new database. The Development environment uses that connection, v1 Latest, SSL required and `connect_timeout: 10`. Its saved user credentials retain schema `dbt_kramesh`, target `dev` and one thread. The dbt Cloud connection test completed successfully. Production uses separate canonical schemas selected by profile schema `bdeat3`.
 
-`BDEAT3 Production` (environment `70506183164733`) was saved on v1 Latest with connection profile `default`. The manual deployment job `BDEAT3 monthly build` (job `70506183143171`) was saved with one May `dbt build` command, one thread, target `prod`, no schedule, no job-completion trigger, no deferral, and a 3,600-second timeout. No job run has been triggered.
+`BDEAT3 Production` (environment `70506183164733`) was saved on v1 Latest with connection profile `default`. The manual deployment job `BDEAT3 monthly build` (job `70506183143171`) was saved with one May `dbt build` command, one thread, target `prod`, no schedule, no job-completion trigger, no deferral, and a 3,600-second timeout.
 
-The previous managed repository was disconnected after its source and starter archive had been backed up. Linking the private GitHub repository is pending GitHub's dbt Cloud authorisation screen. The new repository has not yet been selected in dbt, so the hosted build must not be run yet. The deployment revision variable and actual cloud checkout must also match before a result can be accepted.
+The previous managed repository was disconnected after its source and starter archive had been backed up. GitHub account authorisation and the dbt Cloud app installation were completed, with repository access limited to `KarthikRamesh9149/BDE-AT3`. That private repository is linked to the dbt project. The reviewed deployment revision was set to `859be2d9178bf3bac904942fb9814ef45cf9aeb9` and independently matched to the production run's actual checkout.
 
-## Remaining cloud checkpoint
+## Hosted May builds and independent checks, 22 October 2026
 
-Complete the GitHub link, set the reviewed deployment revision, verify the isolated Studio build, run the saved May job and independently inspect its cloud results. Only then is Part 2 complete and June eligible for loading. The Part 3 runbook is prepared; the eleven remaining CSVs were checked locally but have not been uploaded to the new prefix. Part 4 is deferred.
+The isolated Studio build succeeded in 3 minutes 57 seconds, invocation `c9e955bb-437c-4b7c-9d15-0ecbd7d27c12`. It used target `dev` and the separate development schemas; it did not record a production completion.
+
+Saved production run [`70506184016163`](https://lk965.us1.dbt.com/deploy/70506183170770/projects/70506183174422/runs/70506184016163) succeeded in 4 minutes 6 seconds. Its build invocation was `e529c0fd-8fb4-49c9-bfc1-89337dce3ab5`. The actual v1 Latest runtime reported `2026.10.14+638bb1a`. The retained `run_results.json` contains 19 successful models, two successful snapshots, 47 passing tests and two successful project hooks, totalling 70 resources with no errors, warnings or skipped resources. This is 47 tests, not 70 tests.
+
+Read-only checks ran against the canonical Cloud SQL schemas through DBeaver. After its CSV export stalled, the same checks and the complete datamart values were retrieved through dbt Studio with `dbt show`; that command did not rebuild models or alter the production completion ledger. The stalled read-only export connection was closed, and DBeaver was restarted.
+
+| Check | Actual Cloud SQL result |
+|---|---|
+| Database and encryption | `BDEAT3`, SSL active |
+| Loaded and completed months | May 2020 only |
+| May source / Bronze / fact rows | 37,562 / 37,562 / 37,562 |
+| Host / Property snapshot versions | 27,273 / 37,562 |
+| Host-version, Property-version, stored-key and duplicate-listing-month errors | Zero for all four checks |
+| Completion record | Real saved job/run IDs, 47 tests, matching manifest and reviewed revision; completion after Airflow verification |
+| Datamart groups | 29 listing neighbourhoods, 412 property-type groups, 30 host-neighbourhood groups |
+| Independent source-CSV comparison | All 9,002 May datamart values matched; numeric tolerance below 0.00000001 |
+
+These hosted results establish the Part 2 May checkpoint. Later documentation-only commits do not change the tested implementation; any final rerun must still match its actual checkout to the declared deployment revision and preserve the May facts and snapshot histories.
+
+## Part 3 handover
+
+The Part 3 runbook is prepared. The eleven remaining CSVs were checked locally but have not been uploaded to the new prefix or loaded into `BDEAT3`. Proceed only when the user starts Part 3, then alternate one chronological Airflow load with one successful saved dbt job and verification. The twelve-month local rehearsal is separate evidence and does not mean the cloud months have run. Part 4 is deferred.
