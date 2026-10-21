@@ -2,7 +2,7 @@
 
 Airbnb and Census ELT pipeline for Big Data Engineering Assignment 3.
 
-Part 1 is complete in PostgreSQL database `BDEAT3`. The May 2020 cloud load succeeded on 21 October 2026; independent DBeaver checks confirmed all five source counts and contents. The combined Airflow DAG loads the remaining eleven months in chronological order. Each later month requires the preceding month's verified Bronze load and recorded successful dbt deployment job.
+Part 1 is complete in PostgreSQL database `BDEAT3`. The May 2020 cloud load succeeded on 21 October 2026; independent DBeaver checks confirmed all five source counts and contents. The dbt warehouse and validation controls are implemented and locally tested. Hosted May execution remains pending GitHub connection authorisation and final deployment configuration. Part 3 cloud loads and Part 4 analysis have not started.
 
 ## Files
 
@@ -12,10 +12,23 @@ Part 1 is complete in PostgreSQL database `BDEAT3`. The May 2020 cloud load succ
 | `dags/airbnb_census_monthly_rebuild.py` | Unscheduled monthly load and exact source reconciliation |
 | `source_manifest.json` | SHA-256 hashes and row counts of the sixteen supplied CSVs |
 | `tests/test_part1.py` | Local PostgreSQL integration and failure tests |
+| `dbt_project.yml`, `models/`, `snapshots/`, `macros/` | Silver, timestamp snapshots, Gold, datamart views and monthly validation controls |
+| `tests/test_part2.py`, `tests/test_full_year.py` | Local dbt failure/retry tests and twelve-month rehearsal |
+| `tests/independent_metrics.py` | Independent calculations from source CSVs for all datamart metrics |
+| `verification.sql` | Read-only post-job checks for DBeaver |
 | `docs/part_1_setup.md` | Connection, input, execution and recovery instructions |
-| `docs/validation.md` | Local test scope, May cloud results and remaining work |
+| `docs/part_2_setup.md` | Development/production targets and the single-command monthly job |
+| `docs/part_3_runbook.md` | Remaining monthly sequence, counts and recovery checklist |
+| `docs/brief_coverage.md` | Mapping between requirements and project files |
+| `docs/validation.md` | Local test scope, actual cloud results and remaining work |
 
-The dbt project and saved deployment job are the next implementation unit. The completion ledger remains empty in the cloud until that job is implemented and verified. Part 4 analysis is deferred.
+The saved manual deployment job is `BDEAT3 monthly build` in `BDEAT3 Production`. Its single May command is:
+
+```sh
+dbt build --threads 1 --fail-fast --vars '{"observation_month":"2020-05-01"}'
+```
+
+The cloud completion ledger remains empty until the hosted job passes. Each later Airflow month requires the preceding month's verified Bronze load and recorded successful dbt deployment job. After each monthly load, change the job's month variable, manually run the job and wait for Success before the next load.
 
 ## Design
 
@@ -30,6 +43,6 @@ flowchart LR
   G --> B
 ```
 
-All source fields remain text in Bronze. Filename months establish observation dates; the supplied scrape dates remain unchanged. Silver will perform cleaning and typing. Host and Property will use timestamp snapshots. Static geographic and Census references do not require SCD history.
+All source fields remain text in Bronze. Filename months establish observation dates; the supplied scrape dates remain unchanged. Silver performs cleaning and typing. Host and Property use timestamp snapshots. Static geographic and Census references do not require SCD history. The four Gold dimensions are Host, Property, LGA and Month. The fact has one row per observed listing-month; the three datamart views join the dimension versions valid for that month.
 
 The database and source prefix are separate from earlier work. Database identity, SSL, table structure, source hashes, object generations and chronological history are checked before loading. Identical retries verify existing rows without changing their load timestamps. A failed write rolls back all raw-table and load-ledger writes in that transaction.

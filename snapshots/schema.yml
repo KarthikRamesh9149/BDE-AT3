@@ -1,0 +1,26 @@
+version: 2
+snapshots:
+  - name: snap_host
+    description: Monthly observed host history using the source-month timestamp.
+    data_tests:
+      - nonnull_fields:
+          arguments:
+            fields: [host_id, observation_month, updated_at, dbt_scd_id, dbt_updated_at, dbt_valid_from]
+      - unique_fields:
+          arguments:
+            fields: [dbt_scd_id]
+      - unique_fields:
+          arguments:
+            fields: [host_id, observation_month]
+  - name: snap_property
+    description: Monthly observed property history retaining historical host ownership.
+    data_tests:
+      - nonnull_fields:
+          arguments:
+            fields: [listing_id, host_id, observation_month, updated_at, dbt_scd_id, dbt_updated_at, dbt_valid_from]
+      - unique_fields:
+          arguments:
+            fields: [dbt_scd_id]
+      - unique_fields:
+          arguments:
+            fields: [listing_id, observation_month]

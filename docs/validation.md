@@ -1,4 +1,4 @@
-# Part 1 validation
+# Validation record
 
 ## Local checks, 21 October 2026
 
@@ -62,6 +62,45 @@ The original database was checked before and after the load. Counts and whole-ro
 
 The deployed DAG and setup statements were unchanged during this checkpoint. The existing 15 local test results still apply to them. The added read-only verification queries were executed successfully against Cloud SQL through DBeaver.
 
-## Next checkpoint
+## Part 1 completion checkpoint
 
-Part 1 is complete. Part 2 must implement and test the new dbt project, link the GitHub repository, verify development and deployment destinations, and successfully run the saved May job. No dbt completion record has been inserted. June must not be loaded before that job succeeds. Part 3 and Part 4 remain pending.
+At the end of Part 1, the cloud contained only the verified May raw data. The dbt completion ledger was empty. The following records describe the subsequent Part 2 work.
+
+## Part 2 local failure and recovery tests, 22 October 2026
+
+The final May/June integration test passed in 209.66 seconds using dbt-core 1.12.6, dbt-postgres 1.11.0 and the disposable local PostgreSQL 16.15 instance with SSL. Every complete build passed 47 data tests across 19 models and two snapshots. Its CLI total of 70 includes two project hooks.
+
+The test executed the real DAG loading logic and the new single-command dbt build. It confirmed:
+
+- May counts of 37,562 facts, 37,562 Property versions and 27,273 Host versions.
+- 9,002 independent May metric comparisons calculated directly from CSV data.
+- Actual execution ordering: Silver business tests precede the snapshot preparation model, snapshot tests precede the Gold preparation model, and all Gold branches follow that shared dependency.
+- Unchanged snapshot/fact fingerprints after same-month retries.
+- Rejection of an excluded required test before model writes.
+- Rejection of changed Bronze values without changing snapshots or Gold.
+- An injected Property snapshot write failure leaves Gold at May and records no June completion. A retry after removing the injected failure correctly completes June.
+- 74,463 facts after June and 18,212 independent metric comparisons across May/June, followed by an unchanged June retry.
+
+These are local tests. Storage is a local object-interface fixture, and the cloud job/run IDs in the fixture are deliberately simulated. They do not prove hosted dbt execution. Genuine failed test attempts were retained with the later passing evidence.
+
+## Twelve-month local rehearsal, 22 October 2026
+
+`tests/test_full_year.py` passed in 1,074.40 seconds. It alternated the actual DAG loading code and the full dbt build for every month from May 2020 through April 2021. All twelve builds passed their 47 data tests and recorded local fixture completions. The final fact count was 412,122.
+
+The independent CSV calculations matched 186,552 datamart metric values. The completed views contained 348 neighbourhood groups, 8,870 property-type groups and 361 host-neighbourhood groups. The test specifically confirmed that the 4,780 July rows with a September scrape date remained July observations.
+
+All seven statements in `verification.sql` were then executed read-only against that local database. Each month's Bronze and fact counts matched the source ledger. All twelve completion records matched their manifests and verification timing. Host-version, Property-version, stored-key and duplicate-listing-month error counts were all zero. Hashes of all 40 dbt source/configuration files were unchanged across the verified final candidate.
+
+This rehearsal does not insert data or completion records in Cloud SQL. The deployed cloud database still has only May Bronze data at this checkpoint.
+
+## Hosted configuration, 22 October 2026
+
+The `BDEAT3` connection targets the new database. The Development environment uses that connection, v1 Latest, SSL required and `connect_timeout: 10`. Its saved user credentials retain schema `dbt_kramesh`, target `dev` and one thread. The dbt Cloud connection test completed successfully. Production uses separate canonical schemas selected by profile schema `bdeat3`.
+
+`BDEAT3 Production` (environment `70506183164733`) was saved on v1 Latest with connection profile `default`. The manual deployment job `BDEAT3 monthly build` (job `70506183143171`) was saved with one May `dbt build` command, one thread, target `prod`, no schedule, no job-completion trigger, no deferral, and a 3,600-second timeout. No job run has been triggered.
+
+The previous managed repository was disconnected after its source and starter archive had been backed up. Linking the private GitHub repository is pending GitHub's dbt Cloud authorisation screen. The new repository has not yet been selected in dbt, so the hosted build must not be run yet. The deployment revision variable and actual cloud checkout must also match before a result can be accepted.
+
+## Remaining cloud checkpoint
+
+Complete the GitHub link, set the reviewed deployment revision, verify the isolated Studio build, run the saved May job and independently inspect its cloud results. Only then is Part 2 complete and June eligible for loading. The Part 3 runbook is prepared; the eleven remaining CSVs were checked locally but have not been uploaded to the new prefix. Part 4 is deferred.

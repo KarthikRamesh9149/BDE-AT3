@@ -1,0 +1,32 @@
+name: bde_at3
+version: '1.0.0'
+config-version: 2
+profile: default
+model-paths: [models]
+test-paths: [tests]
+macro-paths: [macros]
+snapshot-paths: [snapshots]
+clean-targets: [target, dbt_packages]
+on-run-start: ["{{ begin_monthly_build() }}"]
+on-run-end:
+  - >-
+    -- depends_on: {{ ref('slv_listings') }}
+
+    -- depends_on: {{ ref('host_snapshot_input') }}
+
+    -- depends_on: {{ ref('property_snapshot_input') }}
+
+    {{ complete_monthly_build(results) }}
+models:
+  bde_at3:
+    silver:
+      +schema: silver
+      +materialized: table
+      +tags: [silver]
+    control:
+      +schema: control
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
+      +tags: [gold]

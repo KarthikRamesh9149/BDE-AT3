@@ -9,3 +9,4 @@ target/
 dbt_packages/
 .DS_Store
 source_data/
+.venv-dbt/

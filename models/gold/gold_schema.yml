@@ -1,0 +1,146 @@
+version: 2
+models:
+- name: dim_host
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - host_version_id
+        - host_id
+        - host_location_status
+        - valid_from
+  - unique_fields:
+      arguments:
+        fields:
+        - host_version_id
+- name: dim_property
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - property_version_id
+        - listing_id
+        - host_id
+        - listing_lga_code
+        - property_type
+        - room_type
+        - accommodates
+        - valid_from
+  - unique_fields:
+      arguments:
+        fields:
+        - property_version_id
+- name: dim_lga
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - lga_code
+        - lga_name
+  - unique_fields:
+      arguments:
+        fields:
+        - lga_code
+- name: dim_month
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - month_id
+        - calendar_year
+        - month_number
+  - unique_fields:
+      arguments:
+        fields:
+        - month_id
+- name: ref_census_g01
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - lga_code
+        - census_year
+  - unique_fields:
+      arguments:
+        fields:
+        - lga_code
+- name: ref_census_g02
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - lga_code
+        - census_year
+  - unique_fields:
+      arguments:
+        fields:
+        - lga_code
+- name: fact_listing_month
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - listing_id
+        - month_id
+        - host_id
+        - host_version_id
+        - property_version_id
+        - listing_lga_code
+        - price
+        - has_availability
+        - availability_30
+        - number_of_reviews
+        - number_of_stays
+        - estimated_revenue
+  - unique_fields:
+      arguments:
+        fields:
+        - listing_id
+        - month_id
+- name: dm_listing_neighbourhood
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - listing_neighbourhood
+        - month_year
+        - total_listings
+        - number_of_distinct_hosts
+  - unique_fields:
+      arguments:
+        fields:
+        - listing_neighbourhood
+        - month_year
+- name: dm_property_type
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - property_type
+        - room_type
+        - accommodates
+        - month_year
+        - total_listings
+        - number_of_distinct_hosts
+  - unique_fields:
+      arguments:
+        fields:
+        - property_type
+        - room_type
+        - accommodates
+        - month_year
+- name: dm_host_neighbourhood
+  data_tests:
+  - nonnull_fields:
+      arguments:
+        fields:
+        - host_neighbourhood_lga
+        - host_location_status
+        - month_year
+        - number_of_distinct_hosts
+  - unique_fields:
+      arguments:
+        fields:
+        - host_neighbourhood_lga
+        - host_location_status
+        - month_year
