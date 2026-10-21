@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+profiles.yml
+logs/
+target/
+dbt_packages/
+.DS_Store
+source_data/

@@ -1,0 +1,66 @@
+{
+  "01_2021.csv": {
+    "rows": 33902,
+    "sha256": "7dd40f2e2365e16dcc6e5a0cfa192cf31937d811ed74cad33bae18431718a8af"
+  },
+  "02_2021.csv": {
+    "rows": 33630,
+    "sha256": "a1afdf2e404ddd1d2026ec17e966a80ca49ff12898ff987c723abb745606be96"
+  },
+  "03_2021.csv": {
+    "rows": 33229,
+    "sha256": "8bcc107d871590e35372e1a78aa943c118eeddca35631d29defcca6e0f21e7be"
+  },
+  "04_2021.csv": {
+    "rows": 32679,
+    "sha256": "8e1860b7b201c6e2e159edf6d2a102b878792a801c5e7499cb354feeb9a3951f"
+  },
+  "05_2020.csv": {
+    "rows": 37562,
+    "sha256": "30ac7a2f7c9e2cea9b9bf7ff313b820945edfd1e566e9cb4c34b9b92a5a31600"
+  },
+  "06_2020.csv": {
+    "rows": 36901,
+    "sha256": "ac3a91c6ef8d5e0720e1e749bd6b5fb7acb215bb8aa994e5701ccddaaf8b5428"
+  },
+  "07_2020.csv": {
+    "rows": 36057,
+    "sha256": "8f67e8def491d099957531ed2f650f2ef3e1ab3258a44af152de2177d7125193"
+  },
+  "08_2020.csv": {
+    "rows": 31391,
+    "sha256": "3bdba346e2ff5219b1a262a13500893780dae7e7b13d0d4477d1e39e1a07616b"
+  },
+  "09_2020.csv": {
+    "rows": 34829,
+    "sha256": "1fab1cc6018a55489c1bd95a3a3ab96ddadf226eae572b6529c21a00585c28f2"
+  },
+  "10_2020.csv": {
+    "rows": 34276,
+    "sha256": "6dcd0d09d4f94473aa12bf4dd9e926859f44470cd50a3541ca2547b0ba46609b"
+  },
+  "11_2020.csv": {
+    "rows": 33795,
+    "sha256": "b745f434a5c614a1e53d16fd0fba6b264f3f76b1d74c8d027a12ece657d4e186"
+  },
+  "12_2020.csv": {
+    "rows": 33871,
+    "sha256": "8a945954d81f3e69c6ec5365bfefbd98dfe401a5c7e72714f82665418e850802"
+  },
+  "2016Census_G01_NSW_LGA.csv": {
+    "rows": 132,
+    "sha256": "f9db8fb29c9bc034be1cb31296bf9e85b1daa8368044ac11a8eeff76c7fd4dd4"
+  },
+  "2016Census_G02_NSW_LGA.csv": {
+    "rows": 132,
+    "sha256": "1415ed6aebe4726921be823ff8ef910cff01151ed3a0cc438326de477b1a7df7"
+  },
+  "NSW_LGA_CODE.csv": {
+    "rows": 129,
+    "sha256": "d4b0d2238588ffc5c2c1007d5307d83ac048ea849392d7ff9c2504b0a1f8dcfe"
+  },
+  "NSW_LGA_SUBURB.csv": {
+    "rows": 4470,
+    "sha256": "0c2f2b3b764b924011a4a85d8547f4276cc2a4c69d24190a6a14a77021c33580"
+  }
+}

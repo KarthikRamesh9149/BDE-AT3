@@ -1,0 +1,6 @@
+# Python 3.11; install using Apache Airflow's official 2.11.0 constraints-3.11.txt.
+apache-airflow==2.11.0
+apache-airflow-providers-postgres==6.2.0
+apache-airflow-providers-google==15.1.0
+psycopg2-binary==2.9.10
+pytest==8.3.5
