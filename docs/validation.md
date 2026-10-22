@@ -83,7 +83,7 @@ The test executed the real DAG loading logic and the new single-command dbt buil
 
 These are local tests. Storage is a local object-interface fixture, and the cloud job/run IDs in the fixture are deliberately simulated. They do not prove hosted dbt execution. Genuine failed test attempts were retained with the later passing evidence.
 
-## Twelve-month local rehearsal, 22 October 2026
+## Twelve-month local rehearsal with explicit month arguments, 22 October 2026
 
 `tests/test_full_year.py` passed in 1,074.40 seconds. It alternated the actual DAG loading code and the full dbt build for every month from May 2020 through April 2021. All twelve builds passed their 47 data tests and recorded local fixture completions. The final fact count was 412,122.
 
@@ -125,3 +125,28 @@ These hosted results establish the Part 2 May checkpoint. Later documentation-on
 ## Part 3 handover
 
 The Part 3 runbook is prepared. The eleven remaining CSVs were checked locally but have not been uploaded to the new prefix or loaded into `BDEAT3`. Proceed only when the user starts Part 3, then alternate one chronological Airflow load with one successful saved dbt job and verification. The twelve-month local rehearsal is separate evidence and does not mean the cloud months have run. Part 4 is deferred.
+
+## Part 3 June load, 22 October 2026
+
+The later Part 3 checkpoint supersedes the upload status above. All twelve listing CSVs are now present in `data/at3_rebuild/listings/`. Airflow run `manual__2026-10-22T15:21:50+11:00` succeeded for June. All three tasks succeeded and the verification log reported 36,901 source rows with exact comparisons passed. June's saved dbt job and its independent database checks remain pending. Do not trigger July before June is complete.
+
+## Automatic month selection: local evidence, 22 October 2026
+
+The change is confined to the month resolver in `macros/silver_helpers.sql` and its use in `macros/build_control.sql`. The DAG, models, snapshots, initial setup SQL, source manifest and project hooks are unchanged. Omitting the month variable selects the latest committed Bronze month, requires its Airflow verification, and records that month for reuse throughout the build. Explicit month arguments still work subject to the existing chronology checks.
+
+The two targeted integration tests passed in 187.36 seconds against a disposable PostgreSQL 16.15 instance with SSL, using dbt-core 1.12.6 and dbt-postgres 1.11.0. They built May using the prior revision `c7cf2fcd1e71d939b808e6bf9c5e75a12cc98610`, then applied the new command. They verified:
+
+- An automatic May retry preserved raw values, snapshot and fact contents, and snapshot table identities.
+- Empty, unverified or mismatched load records were rejected. An unverified June load could not fall back to May.
+- Stale explicit months, skipped months, excluded required tests, full refresh and multiple threads were rejected.
+- An injected June snapshot failure prevented a completion record and blocked the next Airflow month. A June retry completed successfully.
+- Earlier fact and dimension attributes remained unchanged as June closed the appropriate historical validity intervals. Repeating June preserved the complete snapshot and fact contents.
+- All 18,212 independently calculated May/June datamart values matched. Complete builds passed 47 tests across 19 models and two snapshots, plus two project hooks. Dependency-order assertions also passed.
+
+A subsequent regression run finished with 16 tests passed and one failed in 1,009.47 seconds. The failure was in the automatic full-year rehearsal: May through December completed successfully, ending with 278,682 facts and eight verified monthly completions in the disposable database. January's datamart reconciliation failed because the Docker virtual disk ran out of space while PostgreSQL wrote a temporary file. January did not receive a successful completion record. This is not a completed January or twelve-month pass.
+
+A replacement rehearsal used a separate host-backed data directory with more space. It was stopped at the user's request after 15 tests passed; the active test was interrupted. No further full-year result is claimed. The earlier twelve-month result in this document used explicit month arguments and remains distinct from the automatic-month change.
+
+The local tests used the supplied CSV files and real PostgreSQL execution, with simulated object storage and test-only cloud identities. Cloud SQL, the Airflow DAG and dbt Cloud jobs were not changed or run by these tests. Hosted verification of the new selector remains pending. The existing saved job must use the new repository revision and its matching `DBT_DEPLOYMENT_GIT_SHA` before removing the explicit month argument.
+
+After stopping the rehearsal, the original local PostgreSQL container and volume were restarted. Read-only counts and whole-row fingerprints matched the saved pre-test values for both snapshot tables and the fact table: 304,937 Host versions, 412,122 Property versions and 412,122 facts. The temporary rehearsal container is stopped.

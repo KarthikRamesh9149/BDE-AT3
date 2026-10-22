@@ -12,7 +12,7 @@ from test_part1 import database, query, run_month, loader, ROOT, SOURCE
 from independent_metrics import verify_marts
 
 
-def build(tmp_path, month, label, succeeds=True, extra=()):
+def build(tmp_path, month, label, succeeds=True, extra=(), project_dir=ROOT, error=None):
     profile = tmp_path / 'profiles.yml'
     profile.write_text('''default:
   target: qa
@@ -29,18 +29,25 @@ def build(tmp_path, month, label, succeeds=True, extra=()):
       sslmode: require
 ''')
     env = dict(os.environ, DBT_CLOUD_JOB_ID='1', DBT_CLOUD_RUN_ID=str(build.counter),
-               DBT_CLOUD_INVOCATION_CONTEXT='prod', DBT_DEPLOYMENT_GIT_SHA='1'*40)
+               DBT_CLOUD_INVOCATION_CONTEXT='prod', DBT_DEPLOYMENT_GIT_SHA='1'*40,
+               DBT_LOG_PATH=str(tmp_path/'logs'))
     build.counter += 1
     command = [str(ROOT/'.venv-dbt/bin/dbt'), 'build', '--threads', '1', '--fail-fast',
                '--no-use-colors', '--profiles-dir', str(tmp_path),
-               '--vars', json.dumps({'observation_month': month}), *extra]
-    result = subprocess.run(command, cwd=ROOT, env=env, text=True,
+               '--target-path', str(tmp_path/'target')]
+    if month is not None:
+        command += ['--vars', json.dumps({'observation_month': month})]
+    command += list(extra)
+    artifact = tmp_path/'target/run_results.json'
+    previous_artifact = artifact.stat().st_mtime_ns if artifact.exists() else None
+    result = subprocess.run(command, cwd=project_dir, env=env, text=True,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
     (tmp_path/(label+'.log')).write_text(result.stdout)
     print(label, result.returncode, result.stdout[-1200:], flush=True)
     assert (result.returncode == 0) == succeeds, result.stdout[-7000:]
-    artifact = ROOT/'target/run_results.json'
-    if artifact.exists():
+    if error is not None:
+        assert error in result.stdout, result.stdout[-7000:]
+    if artifact.exists() and artifact.stat().st_mtime_ns != previous_artifact:
         (tmp_path/(label+'.json')).write_bytes(artifact.read_bytes())
         return json.loads(artifact.read_text())
 
@@ -56,6 +63,44 @@ def fingerprints(conn):
         select 'fact',count(*),md5(string_agg(to_jsonb(t)::text,'' order by listing_id,month_id))
         from gold.fact_listing_month t""")
     return {name: (count, digest) for name, count, digest in rows}
+
+
+def historical_fingerprints(conn, before_month):
+    """Past states/keys stay fixed; valid_to may close at a new observation."""
+    rows = query(conn, """select 'host',count(*),md5(string_agg(
+            (to_jsonb(t)-'dbt_valid_to')::text,'' order by dbt_scd_id))
+        from silver.snap_host t where observation_month < %s union all
+        select 'property',count(*),md5(string_agg(
+            (to_jsonb(t)-'dbt_valid_to')::text,'' order by dbt_scd_id))
+        from silver.snap_property t where observation_month < %s union all
+        select 'fact',count(*),md5(string_agg(to_jsonb(t)::text,'' order by listing_id,month_id))
+        from gold.fact_listing_month t where month_id < %s""",
+        (before_month, before_month, before_month))
+    return {name: (count, digest) for name, count, digest in rows}
+
+
+def assert_complete_build(result):
+    execution = {r['unique_id']: r for r in result['results']}
+    assert len(execution) == 70
+    assert sum(uid.startswith('test.') for uid in execution) == 47
+    assert sum(uid.startswith('model.') for uid in execution) == 19
+    assert sum(uid.startswith('snapshot.') for uid in execution) == 2
+    assert sum(uid.startswith('operation.') for uid in execution) == 2
+    assert all(r['status'] in ('success', 'pass') for r in execution.values())
+
+    def finished(uid):
+        return max(t['completed_at'] for t in execution[uid]['timing'])
+
+    def started(uid):
+        return min(t['started_at'] for t in execution[uid]['timing'])
+
+    assert finished('test.bde_at3.silver_business_rules') < started('model.bde_at3.silver_ready')
+    for name in ('snap_host', 'snap_property'):
+        assert finished('model.bde_at3.silver_ready') < started('snapshot.bde_at3.'+name)
+        assert finished('snapshot.bde_at3.'+name) < started('model.bde_at3.snapshot_ready')
+    assert finished('test.bde_at3.snapshot_integrity') < started('model.bde_at3.snapshot_ready')
+    for name in ('dim_host', 'dim_property', 'dim_lga', 'dim_month', 'ref_census_g01', 'ref_census_g02'):
+        assert finished('model.bde_at3.snapshot_ready') < started('model.bde_at3.'+name)
 
 
 def test_monthly_build_and_failure_recovery(database, tmp_path):

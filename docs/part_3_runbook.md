@@ -2,6 +2,8 @@
 
 This is an execution checklist, not evidence that the cloud cycles have run. Start only after the May production job is successful and independently verified.
 
+Current checkpoint, 22 October: all twelve listing CSVs are uploaded and June's Airflow load is verified. June's dbt job is pending. Resume at the dbt step for June after configuring the automatic-month revision; do not trigger another Airflow month first. The initial preparation steps below describe the sequence already followed.
+
 ## Once, before June
 
 1. Check the target is `BDEAT3`, the DAG is `airbnb_census_monthly_rebuild`, and the dbt environment is `BDEAT3 Production`.
@@ -13,14 +15,14 @@ This is an execution checklist, not evidence that the cloud cycles have run. Sta
 
 1. In Airflow, trigger the combined DAG once using its default `mode=next`.
 2. Wait for `validate_sources`, `load_bronze` and `verify_bronze` to succeed. Read the selected month and loaded row count. If any task fails, repair/retry that run before proceeding.
-3. In the saved dbt job, set the single command's `observation_month` to the month just loaded. Save and review the command before selecting **Run now**.
+3. After deploying the tested automatic-month revision, keep the saved job's single command as `dbt build --threads 1 --fail-fast`. Select **Run now** manually. It selects the latest verified Bronze month and keeps that month fixed for the build; the job command does not need a monthly edit.
 4. Wait for the job's final **Success**. Check the actual checkout revision, all 47 passing tests, no skipped required resources, and its completion hook. A green Airflow run alone does not complete the cycle.
 5. Run `verification.sql` in DBeaver. Confirm the latest month's completion matches the verified source manifest and run, fact rows equal cumulative source rows, and each fact has exactly one valid Host and Property version.
 6. Record the actual Airflow run ID, dbt run ID, revision, counts and status in the evidence table. Capture the real run/result screens. Then move to the next month.
 
 Never trigger two new monthly loads without a successful saved dbt job between them. Never change observation month to skip a failed cycle.
 
-| Month variable | Source file | Rows | Cumulative facts |
+| Observation month | Source file | Rows | Cumulative facts |
 |---|---|---:|---:|
 | `2020-05-01` | `05_2020.csv` | 37,562 | 37,562 |
 | `2020-06-01` | `06_2020.csv` | 36,901 | 74,463 |

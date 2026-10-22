@@ -55,6 +55,10 @@ def database(monkeypatch):
     admin = psycopg2.connect(dbname='postgres', **DSN)
     admin.autocommit = True
     with admin.cursor() as cur:
+        expected_cluster = os.environ.get('AT3_QA_CLUSTER_NAME')
+        if expected_cluster:
+            cur.execute('SHOW cluster_name')
+            assert cur.fetchone() == (expected_cluster,), 'Refusing to reset an unexpected PostgreSQL cluster'
         cur.execute('DROP DATABASE IF EXISTS "BDEAT3" WITH (FORCE)')
         cur.execute('CREATE DATABASE "BDEAT3"')
     admin.close()

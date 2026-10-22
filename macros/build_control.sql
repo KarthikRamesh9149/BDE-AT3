@@ -11,6 +11,7 @@
 {% endmacro %}
 
 {% macro bronze_checks() %}
+{% set selected_month = observation_month_value() %}
 do $bronze_guard$
 declare actual_count bigint; actual_hash text;
 begin
@@ -41,7 +42,7 @@ begin
   end if;
   {% set expected = [] %}
   {% for s in source_contract() %}
-    {% if s.month is none or s.month <= var('observation_month') %}
+    {% if s.month is none or s.month <= selected_month %}
       {% do expected.append(s) %}
       if not exists (select 1 from pipeline.source_files where
           source_file='data/at3_rebuild/{{ "listings" if s.month else ("census" if "census" in s.table else "lga") }}/{{ s.file }}'

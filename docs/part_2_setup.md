@@ -6,13 +6,17 @@ The repository is `KarthikRamesh9149/BDE-AT3`. Both environments use the Postgre
 
 Development must use a separate profile schema, `dbt_kramesh`. This creates `dbt_kramesh_silver`, `dbt_kramesh_gold` and `dbt_kramesh_control`; it reads the same verified Bronze inputs but cannot write the production completion ledger. Do not use the production schema for Studio commands.
 
-The saved production job has one execution command, with the observation month changed for each monthly cycle:
+After publishing the automatic-month revision and updating the deployment revision setting, use one unchanged execution command for every monthly cycle:
 
 ```sh
-dbt build --threads 1 --fail-fast --vars '{"observation_month":"2020-05-01"}'
+dbt build --threads 1 --fail-fast
 ```
 
 Use the manual deployment job `BDEAT3 monthly build` (ID `70506183143171`), with no schedule, no other automatic trigger, target name `prod`, one thread and a 3,600-second timeout. The dbt scheduler serialises runs of the same deployment job. Never create or run a second job against the canonical schemas while this job is running. Do not use `--full-refresh`, resource exclusions, deferred state, or a stand-alone snapshot command for the monthly cycle.
+
+The automatic month selector must be present in the deployed revision before switching to this command. Earlier revisions required an explicit `observation_month` variable. The current code reads the latest committed month from `pipeline.monthly_loads` and requires both its load record and linked Airflow run to be verified. It rejects an empty or unverified latest load instead of falling back to an older month. The start hook records the selected month in the existing attempt ledger; subsequent resources reuse that month for the same invocation. The selector performs only reads and does not load data or advance the Airflow DAG.
+
+The same command supports a retry of the latest month. An explicit `--vars '{"observation_month":"2020-06-01"}'` remains available for diagnosis, but must still match the latest loaded month and pass every existing check. Neither the current date nor `scraped_date` determines the observation month.
 
 Set `DBT_DEPLOYMENT_GIT_SHA` in the deployment environment to the reviewed 40-character commit. This is a declared revision, not an automatically attested checkout value. Verify the actual revision shown in each cloud run against it. Keep the deployment revision fixed throughout the twelve-month cycle; investigate and retest any code change before continuing. Cloud supplies its real job and run IDs. Local test fixtures are never entered in the hosted environment.
 

@@ -2,7 +2,7 @@
 
 This map uses the visible assignment-brief photographs and the supplied teaching-team clarification screenshots. A source file or local test is not evidence of a successful hosted run. Actual cloud status is recorded in `validation.md`.
 
-Current checkpoint: Parts 1 and 2 are complete through May 2020. The GitHub repository is linked, the isolated Studio build and saved production job passed, and the cloud results were independently checked. Part 3 is prepared but unexecuted; Part 4 and final submission remain deferred.
+Current checkpoint: Parts 1 and 2 are complete through May 2020. The GitHub repository is linked, the isolated Studio build and saved production job passed, and the cloud results were independently checked. Part 3 has started with the verified June Airflow load; June's dbt build is still pending. The automatic-month command passed local upgrade, failure/recovery and retry checks, with monthly cycles through December. Its full-year rehearsal is incomplete, as recorded in `validation.md`; hosted execution of this change is still pending. Part 4 and final submission remain deferred.
 
 | Brief requirement | Project implementation / evidence |
 |---|---|
@@ -21,7 +21,7 @@ Current checkpoint: Parts 1 and 2 are complete through May 2020. The GitHub repo
 | Neighbourhood and property-type metrics | `listing_metrics` calculates all nine requested metric groups, including distinct-host superhost rate, numeric median, calendar-month changes, stays and revenue. |
 | Host-neighbourhood LGA metrics | `dm_host_neighbourhood`: distinct hosts, average revenue per active listing, and total estimated revenue divided by distinct hosts. |
 | Metric definitions and ordering | `macros/gold_helpers.sql` implements the brief's formulas and specified group/month ordering. `gold_edge_cases.sql` checks zero denominators, NULL review ratings, missing groups, inactive listings and historical attribution. |
-| Part 3: chronological Airflow then manual dbt job after each month | The DAG refuses a new month without the preceding successful saved-job completion. The runbook requires final cloud Success and revision checks before the next Airflow trigger. |
+| Part 3: chronological Airflow then manual dbt job after each month | The DAG refuses a new month without the preceding successful saved-job completion. The automatic selector uses the latest verified Bronze month; the operator still triggers dbt manually after each load. The runbook requires final cloud Success and revision checks before the next Airflow trigger. |
 | Part 4: five business questions with SQL/screenshots | Deferred. No Part 4 result is claimed in this checkpoint. |
 | Submission SQL, DAG, models, snapshots, project config | `part_1.sql`, combined DAG, `models/`, `snapshots/`, `dbt_project.yml`; include required `macros/`, YAML tests and supporting verification files so the project remains executable. `part_4.sql` is still to be written. |
 | Handover report, evidence, 3,000-word limit, named ZIP | Deferred until analysis and cloud execution evidence are complete. The report must explain decisions, issues/fixes and business answers. Figures/tables are excluded from the word count stated in the brief. |
