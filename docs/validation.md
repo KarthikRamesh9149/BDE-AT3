@@ -1,5 +1,7 @@
 # Validation record
 
+These entries describe the checkpoints on their stated dates. See the [README completion record](../README.md#recorded-completion) for the final project status.
+
 ## Local checks, 21 October 2026
 
 The BDEAT3 candidate passed 15 tests in 133.47 seconds against PostgreSQL 16.15 with SSL. The tests imported the actual Airflow DAG using Python 3.11.15, Airflow 2.11.0, PostgreSQL provider 6.2.0, Google provider 15.1.0 and psycopg2-binary 2.9.10.
@@ -124,7 +126,7 @@ These hosted results establish the Part 2 May checkpoint. Later documentation-on
 
 ## Part 3 handover
 
-The Part 3 runbook is prepared. The eleven remaining CSVs were checked locally but have not been uploaded to the new prefix or loaded into `BDEAT3`. Proceed only when the user starts Part 3, then alternate one chronological Airflow load with one successful saved dbt job and verification. The twelve-month local rehearsal is separate evidence and does not mean the cloud months have run. Part 4 is deferred.
+The Part 3 runbook is prepared. The eleven remaining CSVs were checked locally but have not been uploaded to the new prefix or loaded into `BDEAT3`. For each month, alternate one chronological Airflow load with one successful saved dbt job and verification. The twelve-month local rehearsal is separate evidence and does not mean the cloud months have run. Part 4 is deferred.
 
 ## Part 3 June load, 22 October 2026
 
@@ -145,7 +147,7 @@ The two targeted integration tests passed in 187.36 seconds against a disposable
 
 A subsequent regression run finished with 16 tests passed and one failed in 1,009.47 seconds. The failure was in the automatic full-year rehearsal: May through December completed successfully, ending with 278,682 facts and eight verified monthly completions in the disposable database. January's datamart reconciliation failed because the Docker virtual disk ran out of space while PostgreSQL wrote a temporary file. January did not receive a successful completion record. This is not a completed January or twelve-month pass.
 
-A replacement rehearsal used a separate host-backed data directory with more space. It was stopped at the user's request after 15 tests passed; the active test was interrupted. No further full-year result is claimed. The earlier twelve-month result in this document used explicit month arguments and remains distinct from the automatic-month change.
+A replacement rehearsal used a separate host-backed data directory with more space. The replacement rehearsal stopped after 15 tests passed; the active test was interrupted. No further full-year result is claimed. The earlier twelve-month result in this document used explicit month arguments and remains distinct from the automatic-month change.
 
 The local tests used the supplied CSV files and real PostgreSQL execution, with simulated object storage and test-only cloud identities. Cloud SQL, the Airflow DAG and dbt Cloud jobs were not changed or run by these tests. Hosted verification of the new selector remains pending. The existing saved job must use the new repository revision and its matching `DBT_DEPLOYMENT_GIT_SHA` before removing the explicit month argument.
 
